@@ -10,6 +10,6 @@ colnames(wpp_pop_data) = wpp_col_name
 wpp_pop_data = wpp_pop_data[!is.na(wpp_pop_data$ISO_Alpha_3),] # restrict to national estimates
 wpp_pop_long = reshape2::melt(wpp_pop_data, id.vars=c("ISO_Alpha_3", "Year"), measure.vars=sprintf("%d", 0:100), variable.name="Age", value.name="Value")
 wpp_pop_long$Value = 1000 * as.numeric(wpp_pop_long$Value)
-wpp_pop_long$Age = as.numeric(wpp_pop_long$Age)
+wpp_pop_long$Age = as.numeric(as.character(wpp_pop_long$Age))
 
 saveRDS(wpp_pop_long, "data/wpp-pop-male.rds")
