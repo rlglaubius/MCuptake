@@ -143,48 +143,48 @@ posterior = function(X) {
   return(prior(X) + likelihood(X))
 }
 
-# X = IMIS.log(prior, likelihood, sample_prior, 500, 1000, 1000)
-# X = list(resample = sample.prior(25))
-#
-# post_par = list()
-# for (k in 1:nrow(X$resample)) {
-#   post_par[[k]] = list(mc_uptake_1 = X$resample[k, 1:6 ],
-#                        mc_agedst_1 = X$resample[k, 7:8 ],
-#                        mc_uptake_2 = X$resample[k, 9:12],
-#                        mc_agedst_2 = X$resample[k,13:14])
-# }
-# imis_out = lapply(post_par, function(par) {model_sim(par, age_data)})
-#
-# X$prior = prior(X$resample)
-# X$lhood = likelihood(X$resample)
-# post_mode = which.max(X$prior + X$lhood)
-#
-# core = runif(nrow(X$resample), 0.7, 0.8)
-# gset = rgb(core, core, core)
-#
-# plot.trend = function(a_lim, t_lim, col, main) {
-#   mc_sset = subset(mc_data, age_min==a_lim[1] & age_max==a_lim[2] + 1)
-#
-#   a_ind = 1 + a_lim[1]:a_lim[2]
-#   par(las=1, mar=c(2.5,3.0,1.0,1.0), cex=1)
-#   plot(t_lim, c(0,1), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
-#   abline(h=axTicks(2), lty=3, lwd=0.5)
-#   for (k in 1:length(imis_out)) {with(imis_out[[k]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=gset[k]))}
-#   with(imis_out[[post_mode]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=col))
-#   points(mc_sset$year, mc_sset$prop_circumcised, pch=16, col=col)
-#   arrows(mc_sset$year, mc_sset$ci_lower, mc_sset$year, mc_sset$ci_upper, code=3, angle=90, length=0.02, col=col)
-#   axis(1, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(1), labels=axTicks(1))
-#   axis(2, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(2), labels=100*axTicks(2))
-#   title(ylab="Male circumcision prevalence, %", line=1.75)
-#   title(main=main)
-# }
-#
-# cset = brewer.pal(8,'Dark2')
-# panel.names = sprintf("%d-%d", seq(15,50,5), seq(19,54,5))
-# tiff(sprintf("%s-mc-data-2000-2030.tiff", tolower(isocode)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
-# layout(matrix(1:8, nrow=2, byrow=TRUE))
-# sapply(0:7, function(k) {plot.trend(c(15, 19) + 5 * k, c(2000, 2030), cset[k+1], panel.names[k+1])})
-# dev.off()
+X = IMIS.log(prior, likelihood, sample_prior, 500, 1000, 1000)
+X = list(resample = sample.prior(25))
+
+post_par = list()
+for (k in 1:nrow(X$resample)) {
+  post_par[[k]] = list(mc_uptake_1 = X$resample[k, 1:6 ],
+                       mc_agedst_1 = X$resample[k, 7:8 ],
+                       mc_uptake_2 = X$resample[k, 9:12],
+                       mc_agedst_2 = X$resample[k,13:14])
+}
+imis_out = lapply(post_par, function(par) {model_sim(par, age_data)})
+
+X$prior = prior(X$resample)
+X$lhood = likelihood(X$resample)
+post_mode = which.max(X$prior + X$lhood)
+
+core = runif(nrow(X$resample), 0.7, 0.8)
+gset = rgb(core, core, core)
+
+plot.trend = function(a_lim, t_lim, col, main) {
+  mc_sset = subset(mc_data, age_min==a_lim[1] & age_max==a_lim[2] + 1)
+
+  a_ind = 1 + a_lim[1]:a_lim[2]
+  par(las=1, mar=c(2.5,3.0,1.0,1.0), cex=1)
+  plot(t_lim, c(0,1), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
+  abline(h=axTicks(2), lty=3, lwd=0.5)
+  for (k in 1:length(imis_out)) {with(imis_out[[k]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=gset[k]))}
+  with(imis_out[[post_mode]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=col))
+  points(mc_sset$year, mc_sset$prop_circumcised, pch=16, col=col)
+  arrows(mc_sset$year, mc_sset$ci_lower, mc_sset$year, mc_sset$ci_upper, code=3, angle=90, length=0.02, col=col)
+  axis(1, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(1), labels=axTicks(1))
+  axis(2, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(2), labels=100*axTicks(2))
+  title(ylab="Male circumcision prevalence, %", line=1.75)
+  title(main=main)
+}
+
+cset = brewer.pal(8,'Dark2')
+panel.names = sprintf("%d-%d", seq(15,50,5), seq(19,54,5))
+tiff(sprintf("%s-mc-data-2000-2030.tiff", tolower(isocode)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
+layout(matrix(1:8, nrow=2, byrow=TRUE))
+sapply(0:7, function(k) {plot.trend(c(15, 19) + 5 * k, c(2000, 2030), cset[k+1], panel.names[k+1])})
+dev.off()
 
 tiff(sprintf("%s-mc-post.tiff", tolower(isocode)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
 layout(matrix(1:4, nrow=2, byrow=TRUE))
