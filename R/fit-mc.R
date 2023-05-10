@@ -161,73 +161,68 @@ posterior = function(X) {
 #
 # core = runif(nrow(X$resample), 0.7, 0.8)
 # gset = rgb(core, core, core)
-
-plot.trend = function(a_lim, t_lim, col, main) {
-  mc_sset = subset(mc_data, age_min==a_lim[1] & age_max==a_lim[2] + 1)
-
-  a_ind = 1 + a_lim[1]:a_lim[2]
-  par(las=1, mar=c(2.5,3.0,1.0,1.0), cex=1)
-  plot(t_lim, c(0,1), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
-  abline(h=axTicks(2), lty=3, lwd=0.5)
-  for (k in 1:length(imis_out)) {with(imis_out[[k]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=gset[k]))}
-  with(imis_out[[post_mode]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=col))
-  points(mc_sset$year, mc_sset$prop_circumcised, pch=16, col=col)
-  arrows(mc_sset$year, mc_sset$ci_lower, mc_sset$year, mc_sset$ci_upper, code=3, angle=90, length=0.02, col=col)
-  axis(1, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(1), labels=axTicks(1))
-  axis(2, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(2), labels=100*axTicks(2))
-  title(ylab="Male circumcision prevalence, %", line=1.75)
-  title(main=main)
-}
-
-cset = brewer.pal(8,'Dark2')
-panel.names = sprintf("%d-%d", seq(15,50,5), seq(19,54,5))
-tiff(sprintf("%s-mc-data-2000-2030.tiff", tolower(isocode)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
-layout(matrix(1:8, nrow=2, byrow=TRUE))
-sapply(0:7, function(k) {plot.trend(c(15, 19) + 5 * k, c(2000, 2030), cset[k+1], panel.names[k+1])})
-dev.off()
-
-# tiff(sprintf("%s-mc-data-2000-2020.tiff", tolower(country)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
-# layout(matrix(1:8, nrow=2, byrow=TRUE))
-# sapply(0:7, function(k) {plot.trend(c(15, 19) + 5 * k, c(2000, 2020), cset[k+1], panel.names[k+1])})
-# dev.off()
 #
-# tiff(sprintf("%s-mc-post.tiff", tolower(country)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
-# layout(matrix(1:4, nrow=2, byrow=TRUE))
-# par(las=1, mar=c(2.5,3.0,1.0,1.0), cex=1)
-# for (panel in 1:2) {
-#   plot(c(1970,2020), c(0,1), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
-#   for (i in 1:nrow(X$resample)) {lines(1970:2020, 1-exp(-mc.model.rate(1970:2020, post.par[[i]])[,panel]), col=gset[i])}
-#   lines(1970:2020, 1-exp(-mc.model.rate(1970:2020, post.par[[post.mode]])[,panel]), col=cset[panel], lwd=1.5)
+# plot.trend = function(a_lim, t_lim, col, main) {
+#   mc_sset = subset(mc_data, age_min==a_lim[1] & age_max==a_lim[2] + 1)
+#
+#   a_ind = 1 + a_lim[1]:a_lim[2]
+#   par(las=1, mar=c(2.5,3.0,1.0,1.0), cex=1)
+#   plot(t_lim, c(0,1), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
+#   abline(h=axTicks(2), lty=3, lwd=0.5)
+#   for (k in 1:length(imis_out)) {with(imis_out[[k]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=gset[k]))}
+#   with(imis_out[[post_mode]], lines(year, rowSums(pop_crc[,a_ind]) / rowSums(pop_sum[,a_ind]), col=col))
+#   points(mc_sset$year, mc_sset$prop_circumcised, pch=16, col=col)
+#   arrows(mc_sset$year, mc_sset$ci_lower, mc_sset$year, mc_sset$ci_upper, code=3, angle=90, length=0.02, col=col)
 #   axis(1, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(1), labels=axTicks(1))
 #   axis(2, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(2), labels=100*axTicks(2))
-#   title(xlab="Year", line=1.5)
-#   title(ylab=sprintf("Uptake trend %0.0f (%%/year)", panel), line=1.75)
+#   title(ylab="Male circumcision prevalence, %", line=1.75)
+#   title(main=main)
 # }
 #
-# for (panel in 1:2) {
-#   ages = 0:54
-#   plot(c(0,55), c(0,0.2), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
-#   for (i in 1:nrow(X$resample)) {lines(ages, mc.model.dist(ages, post.par[[i]])[,panel], col=gset[i])}
-#   lines(ages, mc.model.dist(ages, post.par[[post.mode]])[,panel], col=cset[panel], lwd=1.5)
-#   axis(1, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(1), labels=axTicks(1))
-#   axis(2, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(2), labels=sprintf("%0.1f", axTicks(2)))
-#   title(xlab="Age", line=1.5)
-#   title(ylab=sprintf("Uptake distribution %0.0f", panel), line=1.75)
-# }
+# cset = brewer.pal(8,'Dark2')
+# panel.names = sprintf("%d-%d", seq(15,50,5), seq(19,54,5))
+# tiff(sprintf("%s-mc-data-2000-2030.tiff", tolower(isocode)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
+# layout(matrix(1:8, nrow=2, byrow=TRUE))
+# sapply(0:7, function(k) {plot.trend(c(15, 19) + 5 * k, c(2000, 2030), cset[k+1], panel.names[k+1])})
 # dev.off()
-#
-# ## write out trends that can be input into the ASM
-# post.out = model.sim(post.par[[post.mode]])
-# post.cvg = with(post.out, cbind(rowSums(pop.crc[,15:19+1]) / rowSums(pop.sum[,15:19+1]),
-#                                 rowSums(pop.crc[,20:24+1]) / rowSums(pop.sum[,20:24+1]),
-#                                 rowSums(pop.crc[,25:29+1]) / rowSums(pop.sum[,25:29+1]),
-#                                 rowSums(pop.crc[,30:34+1]) / rowSums(pop.sum[,30:34+1]),
-#                                 rowSums(pop.crc[,35:39+1]) / rowSums(pop.sum[,35:39+1]),
-#                                 rowSums(pop.crc[,40:44+1]) / rowSums(pop.sum[,40:44+1]),
-#                                 rowSums(pop.crc[,45:49+1]) / rowSums(pop.sum[,45:49+1]),
-#                                 rowSums(pop.crc[,50:54+1]) / rowSums(pop.sum[,50:54+1])))
-# rownames(post.cvg) = age.data$year
-# colnames(post.cvg) = panel.names
-# write.csv(t(post.cvg), sprintf('mc-trend-%s.csv', tolower(country)))
+
+tiff(sprintf("%s-mc-post.tiff", tolower(isocode)), w=2*3.42, h=2*2.44, units="in", pointsize=8, compression="lzw", res=300)
+layout(matrix(1:4, nrow=2, byrow=TRUE))
+par(las=1, mar=c(2.5,3.0,1.0,1.0), cex=1)
+for (panel in 1:2) {
+  plot(c(1970,2020), c(0,1), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
+  for (i in 1:nrow(X$resample)) {lines(1970:2030, 1-exp(-mc_model_rate(1970:2030, post_par[[i]])[,panel]), col=gset[i])}
+  lines(1970:2030, 1-exp(-mc_model_rate(1970:2030, post_par[[post_mode]])[,panel]), col=cset[panel], lwd=1.5)
+  axis(1, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(1), labels=axTicks(1))
+  axis(2, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(2), labels=100*axTicks(2))
+  title(xlab="Year", line=1.5)
+  title(ylab=sprintf("Uptake trend %0.0f (%%/year)", panel), line=1.75)
+}
+
+for (panel in 1:2) {
+  ages = 0:54
+  plot(c(0,55), c(0,0.2), cex=0, ann=FALSE, axes=FALSE, xaxs='i', yaxs='i')
+  for (i in 1:nrow(X$resample)) {lines(ages, mc_model_dist(ages, post_par[[i]])[,panel], col=gset[i])}
+  lines(ages, mc_model_dist(ages, post_par[[post_mode]])[,panel], col=cset[panel], lwd=1.5)
+  axis(1, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(1), labels=axTicks(1))
+  axis(2, mgp=c(0.1, 0.3, 0.0), tck=-0.01, at=axTicks(2), labels=sprintf("%0.1f", axTicks(2)))
+  title(xlab="Age", line=1.5)
+  title(ylab=sprintf("Uptake distribution %0.0f", panel), line=1.75)
+}
+dev.off()
+
+## write out trends that can be input into the ASM
+post_out = model_sim(post_par[[post_mode]], age_data)
+post_cvg = with(post_out, cbind(rowSums(pop_crc[,15:19+1]) / rowSums(pop_sum[,15:19+1]),
+                                rowSums(pop_crc[,20:24+1]) / rowSums(pop_sum[,20:24+1]),
+                                rowSums(pop_crc[,25:29+1]) / rowSums(pop_sum[,25:29+1]),
+                                rowSums(pop_crc[,30:34+1]) / rowSums(pop_sum[,30:34+1]),
+                                rowSums(pop_crc[,35:39+1]) / rowSums(pop_sum[,35:39+1]),
+                                rowSums(pop_crc[,40:44+1]) / rowSums(pop_sum[,40:44+1]),
+                                rowSums(pop_crc[,45:49+1]) / rowSums(pop_sum[,45:49+1]),
+                                rowSums(pop_crc[,50:54+1]) / rowSums(pop_sum[,50:54+1])))
+rownames(post_cvg) = imis_out[[post_mode]]$year
+colnames(post_cvg) = panel.names
+write.csv(t(post_cvg), sprintf('mc-trend-%s.csv', tolower(isocode)))
 
 
