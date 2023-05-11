@@ -65,3 +65,35 @@ plot_fitted_prev = function(tiffname, imis_fit, pop_data, svy_data) {
           axis.text.x = element_text(color="#000000", angle=45, hjust=1))
   ggsave(tiffname, compression="lzw", dpi=600, width=2*3.42, height=2*2.44)
 }
+
+#' Write male circumcision prevalence trends to a CSV file
+#' @param csvname File name for an output CSV of male circumcision prevalence point estimates
+#' @param imis_fit IMIS model fit object
+#' @param pop_data A long data frame of male population sizes by year and single
+#'   age for the selected country
+#' @export
+write_mc_prev = function(csvname, imis_fit, pop_data) {
+  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
+  par_best = list(mc_uptake_1 = imis_fit$resample[ind_best, 1:6 ],
+                  mc_agedst_1 = imis_fit$resample[ind_best, 7:8 ],
+                  mc_uptake_2 = imis_fit$resample[ind_best, 9:12],
+                  mc_agedst_2 = imis_fit$resample[ind_best,13:14])
+  mod_best = model_sim(par_best, pop_data)
+
+  age_groups = data.frame(age_min  = seq(15, 45, 5),
+                          age_max  = seq(19, 49, 5))
+  age_groups$AgeGroup = sprintf("%d-%d", age_groups$age_min, age_groups$age_max)
+  mod_prev = plyr::ddply(age_groups, .variables=c("AgeGroup"), function(df) {
+    age_min = df$age_min[1]
+    age_max = df$age_max[1]
+    numer = rowSums(mod_best$pop_crc[,age_min:age_max + 1])
+    denom = rowSums(mod_best$pop_sum[,age_min:age_max + 1])
+    data.frame(Age   = df$AgeGroup[1],
+               Year  = mod_best$year,
+               Value = numer / denom)
+  })
+  mod_prev$AgeGroup = NULL
+  mod_wide = reshape2::dcast(mod_prev, Age~Year, value.var = "Value")
+  write.csv(mod_wide, csvname, row.names=FALSE)
+}
+

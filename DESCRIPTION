@@ -13,8 +13,8 @@ RoxygenNote: 7.2.3
 Collate:
   model-defs.R
   logimis.R
-  fit-mc.R
   plot-defs.R
+  fit-mc.R
   prepare-wpp-data.R
   prepare-svy-data.R
 Imports: ggplot2, mvtnorm
