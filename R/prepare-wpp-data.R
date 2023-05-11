@@ -12,4 +12,5 @@ wpp_pop_long = reshape2::melt(wpp_pop_data, id.vars=c("ISO_Alpha_3", "Year"), me
 wpp_pop_long$Value = 1000 * as.numeric(wpp_pop_long$Value)
 wpp_pop_long$Age = as.numeric(as.character(wpp_pop_long$Age))
 
-saveRDS(wpp_pop_long, "data/wpp-pop-male.rds")
+mc_pop_data = wpp_pop_long
+usethis::use_data(mc_pop_data, overwrite=TRUE)

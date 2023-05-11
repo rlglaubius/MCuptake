@@ -14,5 +14,9 @@ Collate:
   model-defs.R
   logimis.R
   fit-mc.R
+  plot-defs.R
   prepare-wpp-data.R
-Imports: mvtnorm
+  prepare-svy-data.R
+Imports: ggplot2, mvtnorm
+Depends: 
+    R (>= 2.10)

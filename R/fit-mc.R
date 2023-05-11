@@ -1,10 +1,23 @@
 source("R/model-defs.R") # TODO: Remove
 source("R/logimis.R")    # TODO: Remove
-library(ggplot2)
 
-#' Fit the male circumcision uptake model
-#' @param pop_data A long data frame of male population sizes by year and single age
-#' @param svy_data A data frame of male circumcision prevalence estimates from household surveys
+#' Fit the male circumcision uptake model for one country
+#' @param pop_data A long data frame of male population sizes by year and single age for the selected country
+#' @param svy_data A data frame of male circumcision prevalence estimates from household surveys for the selected country
+#' @return An IMIS model fit object (See details section)
+#' @section Details:
+#'
+#' The IMIS model fit object is a list of the following:
+#' \enumerate{
+#' \item{resample} A matrix of posterior parameter values, one row per sample, one column per parameter
+#' \item{center} IMIS constructs a gaussian mixture model approximation to the posterior. "center" is a matrix of
+#' modes of the gaussian components of that mixture model
+#' \item{stat} Convergence monitoring statistics from IMIS iterations. These are also displayed in the console
+#' when fit_model is running
+#' \item{prior} log prior density at each resample
+#' \item{lhood} log likelihood at each resample
+#' }
+#'
 #' @export
 fit_model = function(pop_data, svy_data) {
   lhood = function(X) {likelihood(X, pop_data, svy_data)}
@@ -14,73 +27,16 @@ fit_model = function(pop_data, svy_data) {
   return(imis_fit)
 }
 
-plot_fit = function(imis_fit, pop_data, svy_data) {
-  par_list = apply(imis_fit$resample, 1, function(row_dat) {
-    list(mc_uptake_1 = row_dat[ 1:6 ],
-         mc_agedst_1 = row_dat[ 7:8 ],
-         mc_uptake_2 = row_dat[ 9:12],
-         mc_agedst_2 = row_dat[13:14])
-  })
 
-  mod_list = lapply(par_list, function(par) {model_sim(par, pop_data)})
-  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
-  years = mod_list[[1]]$year
-
-  ## Calculate MC prevalence for each parameter set and survey datapoint
-  svy_data$AgeGroup = sprintf("%d-%d", svy_data$age_min, svy_data$age_max)
-  svy_summ = svy_data[,c("year", "AgeGroup", "prop_circumcised", "ci_lower", "ci_upper")]
-  colnames(svy_summ) = c("Year", "AgeGroup", "Value", "Lower", "Upper")
-
-  mod_summ = plyr::ddply(svy_data, .variables=c("AgeGroup"), function(df) {
-    age_min = df$age_min[1]
-    age_max = df$age_max[1]
-
-    mc_prev = sapply(mod_list, function(mod) {
-      numer = rowSums(mod$pop_crc[,age_min:age_max + 1])
-      denom = rowSums(mod$pop_sum[,age_min:age_max + 1])
-      return(numer / denom)
-    })
-
-    bounds = apply(mc_prev, 1, function(row_dat) {quantile(row_dat, c(0.025, 0.975))})
-    data.frame(AgeGroup = df$AgeGroup[1],
-               Year     = years,
-               Value    = mc_prev[,ind_best],
-               Lower    = bounds[1,],
-               Upper    = bounds[2,])
-  })
-
-  plot_data = dplyr::bind_rows(list(Model = mod_summ, Data = svy_summ), .id="Source")
-
-  ggplot(plot_data, aes(x=Year, y=100*Value, ymin=100*Lower, ymax=100*Upper, color=Source, fill=Source)) +
-    geom_ribbon(data=plot_data[plot_data$Source=="Model",], show.legend=FALSE, alpha=0.2, color=NA) +
-    geom_line(data=plot_data[plot_data$Source=="Model",]) +
-    geom_point(data=plot_data[plot_data$Source=="Data",]) +
-    geom_pointrange(data=plot_data[plot_data$Source=="Data",], size=0, show.legend=FALSE) +
-    xlim(c(2000,2025)) + ylim(c(0,100)) +
-    facet_wrap(~AgeGroup, nrow=2) +
-    ylab("Male circumcision prevalence, %") +
-    theme_bw() +
-    theme(legend.position="right",
-          legend.margin = margin(t=0, b=0, l=0, r=0),
-          panel.grid.minor = element_blank(),
-          panel.grid.major.x = element_blank(),
-          panel.grid.major.y = element_line(color="#a0a0a0", linewidth=0.05),
-          plot.margin = margin(t=0, b=0, l=0.05, r=0.05, unit="cm"),
-          strip.background = element_blank(),
-          axis.title.x = element_blank(),
-          axis.text.x = element_text(color="#000000", angle=45, hjust=1))
-  ggsave("temp.tiff", compression="lzw", dpi=600, width=2*3.42, height=2*2.44)
-}
-
-iso_code = "ZAF"
-pop_data = readRDS("data/wpp-pop-male.rds")
-pop_data = pop_data[pop_data$ISO_Alpha_3==iso_code,]
-pop_data = pop_data[pop_data$Year >= 1970 & pop_data$Year <= 2025,]
-svy_data = read.csv("data/survey-data.csv")
-svy_data = svy_data[svy_data$ISO_Alpha_3==iso_code,]
-
-imis_fit = fit_model(pop_data, svy_data)
-plot_fit(imis_fit, pop_data, svy_data)
+# iso_code = "UGA"
+# pop_data = readRDS("data/wpp-pop-male.rds")
+# pop_data = pop_data[pop_data$ISO_Alpha_3==iso_code,]
+# pop_data = pop_data[pop_data$Year >= 1970 & pop_data$Year <= 2025,]
+# svy_data = read.csv("data/survey-data.csv")
+# svy_data = svy_data[svy_data$ISO_Alpha_3==iso_code,]
+#
+# imis_fit = fit_model(pop_data, svy_data)
+# plot_fit(imis_fit, pop_data, svy_data)
 
 
 # ## +=+ BEGIN OLD CODE +=+
