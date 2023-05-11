@@ -15,7 +15,6 @@ Collate:
   logimis.R
   plot-defs.R
   fit-mc.R
-  prepare-wpp-data.R
   prepare-svy-data.R
 Imports: ggplot2, gridExtra, mvtnorm
 Depends: 
