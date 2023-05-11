@@ -8,28 +8,11 @@ library(ggplot2)
 #' @export
 fit_model = function(pop_data, svy_data) {
   lhood = function(X) {likelihood(X, pop_data, svy_data)}
-
-  # imis_fit = list(resample = sample_prior(100))
-  # imis_fit$resample[1,] = c(
-  #   0.005480256, 0.908589149, 0.702756499, 41.380342111, 0.788876650, 3.024704710,
-  #   1.468947784, 13.955503108,
-  #   0.012310817, 0.009845550, 0.507603086, 35.137571182,
-  #   2.495869674, 33.264575703)
-
   imis_fit = log_imis(prior, lhood, sample_prior, 500, 1000, 1000)
   imis_fit$prior = prior(imis_fit$resample)
   imis_fit$lhood = lhood(imis_fit$resample)
   return(imis_fit)
 }
-
-iso_code = "ETH"
-pop_data = readRDS("data/wpp-pop-male.rds")
-pop_data = pop_data[pop_data$ISO_Alpha_3==iso_code,]
-pop_data = pop_data[pop_data$Year >= 1970 & pop_data$Year <= 2025,]
-svy_data = read.csv("data/survey-data.csv")
-svy_data = svy_data[svy_data$ISO_Alpha_3==iso_code,]
-
-# imis_fit = fit_model(pop_data, svy_data)
 
 plot_fit = function(imis_fit, pop_data, svy_data) {
   par_list = apply(imis_fit$resample, 1, function(row_dat) {
@@ -89,6 +72,15 @@ plot_fit = function(imis_fit, pop_data, svy_data) {
   ggsave("temp.tiff", compression="lzw", dpi=600, width=2*3.42, height=2*2.44)
 }
 
+iso_code = "ZAF"
+pop_data = readRDS("data/wpp-pop-male.rds")
+pop_data = pop_data[pop_data$ISO_Alpha_3==iso_code,]
+pop_data = pop_data[pop_data$Year >= 1970 & pop_data$Year <= 2025,]
+svy_data = read.csv("data/survey-data.csv")
+svy_data = svy_data[svy_data$ISO_Alpha_3==iso_code,]
+
+imis_fit = fit_model(pop_data, svy_data)
+plot_fit(imis_fit, pop_data, svy_data)
 
 
 # ## +=+ BEGIN OLD CODE +=+
