@@ -8,7 +8,7 @@
 #' @param svy_data A data frame of male circumcision prevalence estimates from
 #'   household surveys for the selected country
 #' @export
-plot_fitted_prev = function(tiffname, imis_fit, pop_data, svy_data) {
+plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data) {
   par_list = apply(imis_fit$resample, 1, function(row_dat) {
     list(mc_uptake_1 = row_dat[ 1:6 ],
          mc_agedst_1 = row_dat[ 7:8 ],
