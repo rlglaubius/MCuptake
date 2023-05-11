@@ -53,7 +53,8 @@ estimate_mc_prev = function(isocode, tiffname, csvname, year_first=1970, year_fi
 #' @export
 fit_mc_model = function(pop_data, svy_data) {
   lhood = function(X) {likelihood(X, pop_data, svy_data)}
-  imis_fit = log_imis(prior, lhood, sample_prior, 500, 1000, 1000) # list(resample=sample_prior(100))
+  imis_fit = log_imis(prior, lhood, sample_prior, 500, 1000, 1000)
+  # imis_fit = list(resample=sample_prior(100)) # Useful for debugging without waiting for IMIS
   imis_fit$prior = prior(imis_fit$resample)
   imis_fit$lhood = lhood(imis_fit$resample)
   return(imis_fit)

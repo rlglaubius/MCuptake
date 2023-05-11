@@ -62,9 +62,89 @@ plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data) {
           plot.margin = margin(t=0, b=0, l=0.05, r=0.05, unit="cm"),
           strip.background = element_blank(),
           axis.title.x = element_blank(),
-          axis.text.x = element_text(color="#000000", angle=45, hjust=1))
+          axis.text.x = element_text(color="#000000", hjust=1, angle=45),
+          axis.text.y = element_text(color="#000000"))
   ggsave(tiffname, compression="lzw", dpi=600, width=2*3.42, height=2*2.44)
 }
+
+#' Plot fitted male circumcision uptake rates
+#'
+#' Plot fitted male circumcision uptake rates for a single country as a TIFF file
+#' @param tiffname Output figure filename (tiff format)
+#' @param imis_fit IMIS model fit object
+#' @param pop_data A long data frame of male population sizes by year and single
+#'   age for the selected country
+#' @export
+plot_fitted_mc_rates = function(tiffname, imis_fit, pop_data) {
+  matrix_row_summary = function(m, best) {
+    data.frame(Value = m[,best],
+               Lower = apply(m, 1, function(rdat) {quantile(rdat, c(0.025))}),
+               Upper = apply(m, 1, function(rdat) {quantile(rdat, c(0.975))}))
+  }
+
+  par_list = apply(imis_fit$resample, 1, function(row_dat) {
+    list(mc_uptake_1 = row_dat[ 1:6 ],
+         mc_agedst_1 = row_dat[ 7:8 ],
+         mc_uptake_2 = row_dat[ 9:12],
+         mc_agedst_2 = row_dat[13:14])
+  })
+
+  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
+
+  age = 0:100
+  yrs = unique(pop_data$Year)
+  rate_list = lapply(par_list, function(par) {mc_model_rate(yrs, par)})
+  dist_list = lapply(par_list, function(par) {mc_model_dist(age, par)})
+
+  rate_1_mtrx = sapply(rate_list, function(r) {r[,1]})
+  rate_2_mtrx = sapply(rate_list, function(r) {r[,2]})
+  dist_1_mtrx = sapply(dist_list, function(d) {d[,1]})
+  dist_2_mtrx = sapply(dist_list, function(d) {d[,2]})
+
+  rate_1_summ = matrix_row_summary(rate_1_mtrx, ind_best)
+  rate_2_summ = matrix_row_summary(rate_2_mtrx, ind_best)
+  dist_1_summ = matrix_row_summary(dist_1_mtrx, ind_best)
+  dist_2_summ = matrix_row_summary(dist_2_mtrx, ind_best)
+
+  rate_1_summ$Year = yrs
+  rate_2_summ$Year = yrs
+  dist_1_summ$Age = age
+  dist_2_summ$Age = age
+
+  plot_rate = dplyr::bind_rows(list(Rate1 = rate_1_summ, Rate2 = rate_2_summ), .id="Component")
+  plot_dist = dplyr::bind_rows(list(Rate1 = dist_1_summ, Rate2 = dist_2_summ), .id="Component")
+
+  pr = ggplot(plot_rate, aes(x=Year, y=Value, ymin=Lower, ymax=Upper, color=Component, fill=Component)) +
+    geom_ribbon(alpha=0.2, color=NA) +
+    geom_line() +
+    theme_bw() +
+    ylab("MC uptake trend") +
+    theme(legend.position="top",
+          legend.margin = margin(t=0, b=0, l=0, r=0),
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_line(color="#a0a0a0", linewidth=0.05),
+          plot.margin = margin(t=0, b=0, l=0.05, r=0.1, unit="cm"),
+          strip.background = element_blank(),
+          axis.text = element_text(color="#000000"))
+
+  pd = ggplot(plot_dist, aes(x=Age, y=Value, ymin=Lower, ymax=Upper, color=Component, fill=Component)) +
+    geom_ribbon(alpha=0.2, color=NA) +
+    geom_line() +
+    theme_bw() +
+    ylab("MC uptake age distribution") +
+    theme(legend.position="top",
+          legend.margin = margin(t=0, b=0, l=0, r=0),
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_line(color="#a0a0a0", linewidth=0.05),
+          plot.margin = margin(t=0, b=0, l=0.1, r=0.05, unit="cm"),
+          strip.background = element_blank(),
+          axis.text = element_text(color="#000000"))
+
+  ggsave(tiffname, plot=grid.arrange(pr, pd, ncol=2, nrow=1), compression="lzw", dpi=600, width=2*3.42, height=2.44)
+}
+
 
 #' Write male circumcision prevalence trends to a CSV file
 #' @param csvname File name for an output CSV of male circumcision prevalence point estimates

@@ -17,6 +17,6 @@ Collate:
   fit-mc.R
   prepare-wpp-data.R
   prepare-svy-data.R
-Imports: ggplot2, mvtnorm
+Imports: ggplot2, gridExtra, mvtnorm
 Depends: 
     R (>= 2.10)
