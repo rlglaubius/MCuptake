@@ -28,6 +28,7 @@ model_sim = function(par, pop_data) {
   pop_sum = data.matrix(age_wide[,2:ncol(age_wide)])
   pop_unc = matrix(0, ncol=num_a, nrow=num_t) # uncircumcised population
   pop_crc = matrix(0, ncol=num_a, nrow=num_t) # circumcised population
+  num_crc = matrix(0, ncol=num_a, nrow=num_t) # circumcisions performed
 
   mc_rate = mc_model(year, ages, par)
   mc_prob = 1.0 - exp(-mc_rate)
@@ -41,6 +42,7 @@ model_sim = function(par, pop_data) {
   for (a in 2:num_a) {mc_init[a] = mc_init[a-1] + (1.0 - mc_init[a-1]) * mc_prob[1,a]}
   pop_crc[1,] = mc_init * pop_sum[1,]
   pop_unc[1,] = pop_sum[1,] - pop_crc[1,]
+  num_crc[1,] = mc_init * pop_sum[1,]
 
   ## Initialize prevalence at age 0 ()
   pop_crc[,1] = pop_sum[,1] * mc_prob[,1]
@@ -48,12 +50,13 @@ model_sim = function(par, pop_data) {
 
   ## Calculate MC prevalence from uptake and age 0 and base-year levels
   for (yi in 2:num_t) {
-    sx = pop_sum[yi,2:num_a] / pop_sum[yi-1,1:(num_a-1)] # approximate survival from year-to-year populations
+    sx = pop_sum[yi,2:num_a] / (pop_sum[yi-1,1:(num_a-1)] + 1e-16) # approximate survival from year-to-year populations. Padding to avoid divide-by-zero
     pop_crc[yi,2:num_a] = (pop_crc[yi-1,1:(num_a-1)] + mc_prob[yi,2:num_a] * pop_unc[yi-1,1:(num_a-1)]) * sx
     pop_unc[yi,2:num_a] = pop_sum[yi,2:num_a] - pop_crc[yi,2:num_a]
+    num_crc[yi,2:num_a] = mc_prob[yi,2:num_a] * pop_unc[yi-1,1:(num_a-1)]
   }
 
-  return(list(year = year, pop_sum = pop_sum, pop_unc = pop_unc, pop_crc = pop_crc))
+  return(list(year = year, pop_sum = pop_sum, pop_unc = pop_unc, pop_crc = pop_crc, num_crc = num_crc))
 }
 
 sample_prior = function(n) {

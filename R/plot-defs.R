@@ -171,9 +171,7 @@ plot_fitted_mc_count = function(tiffname, imis_fit, pop_data, svy_data, year_fir
 
   mc_count = sapply(par_list, function(par) {
     vals = model_sim(par, pop_data)
-    rate = mc_model(year, ages, par)
-    prob = 1.0 - exp(-rate)
-    return(rowSums(prob * vals$pop_unc))
+    return(rowSums(vals$num_crc))
   })
 
   bounds = apply(mc_count, 1, function(row_dat) {quantile(row_dat, c(0.025, 0.975))})
