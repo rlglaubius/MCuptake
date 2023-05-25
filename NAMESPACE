@@ -2,6 +2,7 @@
 
 export(estimate_mc_prev)
 export(fit_mc_model)
+export(plot_fitted_mc_count)
 export(plot_fitted_mc_prev)
 export(plot_fitted_mc_rates)
 export(write_mc_prev)

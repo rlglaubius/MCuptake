@@ -1,15 +1,21 @@
 library(gridExtra)
 library(MCuptake)
 
-iso_code = "UGA"
-pop_data = subset(mc_pop_data, ISO_Alpha_3==iso_code & Year >= 1970 & Year <= 2025)
-svy_data = subset(mc_svy_data, ISO_Alpha_3==iso_code)
+fit_data = list(iso_code = "KEN")
+fit_data$pop_data = subset(mc_pop_data, ISO_Alpha_3==fit_data$iso_code & Year >= 1970 & Year <= 2025)
+fit_data$svy_data = subset(mc_svy_data, ISO_Alpha_3==fit_data$iso_code)
+fit_data$imis_fit = fit_mc_model(fit_data$pop_data, fit_data$svy_data)
 
-prev_tiff = sprintf("%s-mc-prev.tiff", tolower(iso_code))
-rate_tiff = sprintf("%s-mc-rate.tiff", tolower(iso_code))
-prev_csv = sprintf("%s-mc-prev.csv", tolower(iso_code))
+# Save the model fit (e.g., "uga-fit.rds" for Uganda); this can be reloaded using fit_data = readRDS("uga-fit.rds")
+save_rds = sprintf("%s-fit.rds", tolower(fit_data$iso_code))
+saveRDS(fit_data, save_rds)
 
-imis_fit = fit_mc_model(pop_data, svy_data)
-plot_fitted_mc_prev(prev_tiff, imis_fit, pop_data, svy_data)
-plot_fitted_mc_rates(rate_tiff, imis_fit, pop_data)
-write_mc_prev(prev_csv, imis_fit, pop_data)
+prev_tiff = sprintf("%s-mc-prev.tiff", tolower(fit_data$iso_code))
+rate_tiff = sprintf("%s-mc-rate.tiff", tolower(fit_data$iso_code))
+count_tiff = sprintf("%s-mc-count.tiff", tolower(fit_data$iso_code))
+prev_csv = sprintf("%s-mc-prev.csv", tolower(fit_data$iso_code))
+
+plot_fitted_mc_prev(prev_tiff, fit_data$imis_fit, fit_data$pop_data, fit_data$svy_data)
+plot_fitted_mc_rates(rate_tiff, fit_data$imis_fit, fit_data$pop_data)
+plot_fitted_mc_count(count_tiff, fit_data$imis_fit, fit_data$pop_data)
+write_mc_prev(prev_csv, fit_data$imis_fit, fit_data$pop_data)

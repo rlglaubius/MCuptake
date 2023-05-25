@@ -7,8 +7,10 @@
 #'   age for the selected country
 #' @param svy_data A data frame of male circumcision prevalence estimates from
 #'   household surveys for the selected country
+#' @param year_first First year to plot
+#' @param year_final Final year to plot
 #' @export
-plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data) {
+plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data, year_first=2000, year_final=2025) {
   par_list = apply(imis_fit$resample, 1, function(row_dat) {
     list(mc_uptake_1 = row_dat[ 1:6 ],
          mc_agedst_1 = row_dat[ 7:8 ],
@@ -50,7 +52,7 @@ plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data) {
     geom_line(data=plot_data[plot_data$Source=="Model",]) +
     geom_point(data=plot_data[plot_data$Source=="Data",]) +
     geom_pointrange(data=plot_data[plot_data$Source=="Data",], size=0, show.legend=FALSE) +
-    xlim(c(2000,2025)) + ylim(c(0,100)) +
+    xlim(c(year_first,year_final)) + ylim(c(0,100)) +
     facet_wrap(~AgeGroup, nrow=2) +
     ylab("Male circumcision prevalence, %") +
     theme_bw() +
@@ -145,6 +147,50 @@ plot_fitted_mc_rates = function(tiffname, imis_fit, pop_data) {
   ggsave(tiffname, plot=grid.arrange(pr, pd, ncol=2, nrow=1), compression="lzw", dpi=600, width=2*3.42, height=2.44)
 }
 
+#' Plot numbers of male circumcisions done
+#'
+#' Plot numbers of male circumcisions done for a single country as a TIFF file
+#' @param tiffname Output figure filename (tiff format)
+#' @param imis_fit IMIS model fit object
+#' @param pop_data A long data frame of male population sizes by year and single
+#'   age for the selected country
+#' @param year_first First year to plot
+#' @param year_final Final year to plot
+#' @export
+plot_fitted_mc_count = function(tiffname, imis_fit, pop_data, svy_data, year_first=2000, year_final=2025) {
+  par_list = apply(imis_fit$resample, 1, function(row_dat) {
+    list(mc_uptake_1 = row_dat[ 1:6 ],
+         mc_agedst_1 = row_dat[ 7:8 ],
+         mc_uptake_2 = row_dat[ 9:12],
+         mc_agedst_2 = row_dat[13:14])
+  })
+
+  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
+  year = unique(pop_data$Year)
+  ages = unique(pop_data$Age)
+
+  mc_count = sapply(par_list, function(par) {
+    vals = model_sim(par, pop_data)
+    rate = mc_model(year, ages, par)
+    prob = 1.0 - exp(-rate)
+    return(rowSums(prob * vals$pop_unc))
+  })
+
+  bounds = apply(mc_count, 1, function(row_dat) {quantile(row_dat, c(0.025, 0.975))})
+  plot_data = data.frame(Year = year,
+                         Value = mc_count[,ind_best],
+                         Lower = bounds[1,],
+                         Upper = bounds[2,])
+
+  ggplot(plot_data, aes(x=Year, y=1e-3*Value, ymin=1e-3*Lower, ymax=1e-3*Upper)) +
+    geom_ribbon(alpha=0.2, color=NA) +
+    geom_line() +
+    xlim(c(year_first,year_final)) +
+    ylab("Male circumcisions, 1000s") +
+    expand_limits(y=0) +
+    theme_bw()
+  ggsave(tiffname, compression="lzw", dpi=600, width=3.42, height=2.44)
+}
 
 #' Write male circumcision prevalence trends to a CSV file
 #' @param csvname File name for an output CSV of male circumcision prevalence point estimates
