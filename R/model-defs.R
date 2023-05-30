@@ -1,3 +1,14 @@
+## Convert a parameter matrix (rows=samples, columns=parameters) to a list that
+## can be used with (e.g.) mc_model_rate.
+unpack_pars = function(par_matrix) {
+  return(apply(par_matrix, 1, function(row_dat) {
+    list(mc_uptake_1 = row_dat[ 1:6 ],
+         mc_agedst_1 = row_dat[ 7:8 ],
+         mc_uptake_2 = row_dat[ 9:12],
+         mc_agedst_2 = row_dat[13:14])
+  }))
+}
+
 ## Male circumcision uptake rates over time
 mc_model_rate = function(year, par) {
   z = par$mc_uptake_1[1] + (par$mc_uptake_1[2] - par$mc_uptake_1[1]) / (1.0 + exp(-par$mc_uptake_1[3] * (year - 1970 - par$mc_uptake_1[4])))
@@ -104,12 +115,9 @@ prior = function(X) {
 likelihood = function(X, pop_data, svy_data) {
   P = prior(X)
   L = rep(-Inf, nrow(X))
-
+  par_list = unpack_pars(X)
   for (k in which(is.finite(P))) {
-    inputs = list(mc_uptake_1 = X[k, 1:6 ],
-                  mc_agedst_1 = X[k, 7:8 ],
-                  mc_uptake_2 = X[k, 9:12],
-                  mc_agedst_2 = X[k,13:14])
+    inputs = par_list[[k]]
     output = model_sim(inputs, pop_data)
 
     L[k] = sum(apply(svy_data[,c("age_min", "age_max", "year", "num_uncircumcised", "num_circumcised")], 1, function(obs) {
