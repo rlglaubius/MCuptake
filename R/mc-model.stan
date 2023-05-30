@@ -17,8 +17,8 @@ data {
 parameters {
   // The first rate (r1) is defined as a probit-transformed logistic trend. The probit transform allows the
   // rate to peak and decline
-  real r1_llim; // left limit
-  real r1_rlim; // right limit
+  real<upper=0> r1_llim; // left limit
+  real<lower=0> r1_rlim; // right limit
   real<lower=0> r1_slope;
   real r1_midpt;
   real<lower=0> r1_max; // rate maximum
