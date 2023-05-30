@@ -11,13 +11,7 @@
 #' @param year_final Final year to plot
 #' @export
 plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data, year_first=2000, year_final=2025) {
-  par_list = apply(imis_fit$resample, 1, function(row_dat) {
-    list(mc_uptake_1 = row_dat[ 1:6 ],
-         mc_agedst_1 = row_dat[ 7:8 ],
-         mc_uptake_2 = row_dat[ 9:12],
-         mc_agedst_2 = row_dat[13:14])
-  })
-
+  par_list = unpack_pars(imis_fit$resample)
   mod_list = lapply(par_list, function(par) {model_sim(par, pop_data)})
   ind_best = which.max(imis_fit$prior + imis_fit$lhood)
   years = mod_list[[1]]$year
@@ -84,13 +78,7 @@ plot_fitted_mc_rates = function(tiffname, imis_fit, pop_data) {
                Upper = apply(m, 1, function(rdat) {quantile(rdat, c(0.975))}))
   }
 
-  par_list = apply(imis_fit$resample, 1, function(row_dat) {
-    list(mc_uptake_1 = row_dat[ 1:6 ],
-         mc_agedst_1 = row_dat[ 7:8 ],
-         mc_uptake_2 = row_dat[ 9:12],
-         mc_agedst_2 = row_dat[13:14])
-  })
-
+  par_list = unpack_pars(imis_fit$resample)
   ind_best = which.max(imis_fit$prior + imis_fit$lhood)
 
   age = 0:100
@@ -158,13 +146,7 @@ plot_fitted_mc_rates = function(tiffname, imis_fit, pop_data) {
 #' @param year_final Final year to plot
 #' @export
 plot_fitted_mc_count = function(tiffname, imis_fit, pop_data, svy_data, year_first=2000, year_final=2025) {
-  par_list = apply(imis_fit$resample, 1, function(row_dat) {
-    list(mc_uptake_1 = row_dat[ 1:6 ],
-         mc_agedst_1 = row_dat[ 7:8 ],
-         mc_uptake_2 = row_dat[ 9:12],
-         mc_agedst_2 = row_dat[13:14])
-  })
-
+  par_list = unpack_pars(imis_fit$resample)
   ind_best = which.max(imis_fit$prior + imis_fit$lhood)
   year = unique(pop_data$Year)
   ages = unique(pop_data$Age)
@@ -197,11 +179,9 @@ plot_fitted_mc_count = function(tiffname, imis_fit, pop_data, svy_data, year_fir
 #'   age for the selected country
 #' @export
 write_mc_prev = function(csvname, imis_fit, pop_data) {
+  par_list = unpack_pars(imis_fit$resample)
   ind_best = which.max(imis_fit$prior + imis_fit$lhood)
-  par_best = list(mc_uptake_1 = imis_fit$resample[ind_best, 1:6 ],
-                  mc_agedst_1 = imis_fit$resample[ind_best, 7:8 ],
-                  mc_uptake_2 = imis_fit$resample[ind_best, 9:12],
-                  mc_agedst_2 = imis_fit$resample[ind_best,13:14])
+  par_best = par_list[[ind_best]]
   mod_best = model_sim(par_best, pop_data)
 
   age_groups = data.frame(age_min  = seq(15, 45, 5),
