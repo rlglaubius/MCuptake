@@ -3,6 +3,10 @@ mc_model_rate = function(year, par) {
   z = par$mc_uptake_1[1] + (par$mc_uptake_1[2] - par$mc_uptake_1[1]) / (1.0 + exp(-par$mc_uptake_1[3] * (year - 1970 - par$mc_uptake_1[4])))
   mc_rate_1 = exp(-0.5 * (z / par$mc_uptake_1[5])^2) * par$mc_uptake_1[6]
   mc_rate_2 = par$mc_uptake_2[1] + (par$mc_uptake_2[2] - par$mc_uptake_2[1]) / (1.0 + exp(-par$mc_uptake_2[3] * (year - 1970 - par$mc_uptake_2[4])))
+#
+#   mc_rate_1[year>2021] = 0.6 * mc_rate_1[year==2019]
+#   mc_rate_2[year>2021] = 0.6 * mc_rate_2[year==2019]
+#
   return(cbind(mc_rate_1, mc_rate_2))
 }
 
