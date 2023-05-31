@@ -15,14 +15,11 @@ data {
 // The parameters accepted by the model. Our model
 // accepts two parameters 'mu' and 'sigma'.
 parameters {
-  // The first rate (r1) is defined as a probit-transformed logistic trend. The probit transform allows the
-  // rate to peak and decline
-  real<upper=0> r1_llim; // left limit
-  real<lower=0> r1_rlim; // right limit
-  real<lower=0> r1_slope;
-  real r1_midpt;
-  real<lower=0> r1_max; // rate maximum
-  real<lower=0> r1_std; // probit standard deviation
+  real<lower=0> r1_slope1;
+  real<lower=0> r1_slope2;
+  real<lower=0> r1_center;
+  real<lower=0> r1_theta1;
+  real<lower=0> r1_theta2;
 
   // Age distribution used with the first rate
   real<lower=0> a1_size;
@@ -41,7 +38,7 @@ parameters {
 
 transformed parameters {
   real z1;
-  real<lower=0> z2;
+  real z2;
   real<lower=0> rate1[n_pop_yrs];
   real<lower=0> rate2[n_pop_yrs];
   real<lower=0> dist1[n_pop_age];
@@ -54,16 +51,12 @@ transformed parameters {
   real<lower=0> numer;
   real<lower=0> denom;
 
-  // real<lower=0,upper=1> mc_init[n_pop_age];
-  // real<lower=0> pop_crc[n_pop_yrs, n_pop_age];
-  // real<lower=0> pop_unc[n_pop_yrs, n_pop_age];
-
   // Calculate time trends in rates
   for (t in 1:n_pop_yrs) {
-    z1 = r1_llim + (r1_rlim - r1_llim) / (1.0 + exp(-r1_slope * (pop_year[t] - 1970 - r1_midpt)));
-    z2 = r2_llim + (r2_rlim - r2_llim) / (1.0 + exp(-r2_slope * (pop_year[t] - 1970 - r2_midpt)));
-    rate1[t] = r1_max * exp(-0.5 * (z1 / r1_std) * (z1 / r1_std));
-    rate2[t] = z2;
+    z1 = 1.0 / (1.0 + exp(-r1_slope1 * (pop_year[t] - 1970 - r1_center)));
+    z2 = 1.0 / (1.0 + exp(+r1_slope2 * (pop_year[t] - 1970 - r1_center)));
+    rate1[t] = z1 * (2 * r1_theta1 * z2 + r1_theta2);
+    rate2[t] = r2_llim + (r2_rlim - r2_llim) / (1.0 + exp(-r2_slope * (pop_year[t] - 1970 - r2_midpt)));
   }
 
   // Calculate rate age distributions
@@ -100,44 +93,20 @@ transformed parameters {
     numer = 0.0;
     denom = 0.0;
     for (a in svy_age_min[k]:svy_age_max[k]) {
-      numer += pop_sum[svy_year[k]-1970+1,a] * mc_prev[svy_year[k]-1970+1,a];
-      denom += pop_sum[svy_year[k]-1970+1,a];
+      numer += pop_sum[svy_year[k]-1970+1,a+1] * mc_prev[svy_year[k]-1970+1,a+1];
+      denom += pop_sum[svy_year[k]-1970+1,a+1];
     }
     svy_mc_prev[k] = numer / denom;
   }
-
-  // The version below tries to take population dynamics into account. This may not be
-  // necessary, and seems to cause numerical problems.
-  // // Initialize the first year
-  // mc_init[1] = uptake_prop[1,1];
-  // for (a in 2:n_pop_age) {
-  //   mc_init[a] = mc_init[a-1] + (1.0 - mc_init[a-1]) * uptake_prop[1,a];
-  //   pop_crc[1,a] = mc_init[a] * pop_sum[1,a];
-  //   pop_unc[1,a] = pop_sum[1,a] - pop_crc[1,a];
-  // }
-  //
-  // // Initialize age 0
-  // for (t in 2:n_pop_yrs) {
-  //   pop_crc[t,1] = pop_sum[t,1] * uptake_prop[t,1];
-  //   pop_unc[t,1] = pop_sum[t,1] - pop_crc[t,1];
-  // }
-  //
-  // for (t in 2:n_pop_yrs) {
-  //   for (a in 2:n_pop_age) {
-  //     pop_crc[t,a] = (pop_crc[t-1,a-1] + pop_unc[t-1,a-1] * uptake_prop[t,a]) * (pop_sum[t,a] / pop_sum[t-1,a-1]);
-  //     pop_unc[t,a] = pop_sum[t,a] - pop_crc[t,a];
-  //   }
-  // }
 }
 
 model {
   // Prior
-  r1_llim ~ normal(0,1);
-  r1_rlim ~ normal(0,1);
-  r1_slope ~ exponential(0.5);
-  r1_midpt ~ normal(2012-1970, 8.0);
-  r1_max ~ exponential(1.0);
-  r1_std ~ exponential(1.0);
+  r1_slope1 ~ exponential(0.5);
+  r1_slope2 ~ exponential(0.5);
+  r1_center ~ normal(2012-1970, 8.0);
+  r1_theta1 ~ exponential(0.5);
+  r1_theta2 ~ exponential(0.5);
 
   a1_size ~ exponential(0.1);
   a1_mean ~ uniform(0, 50);

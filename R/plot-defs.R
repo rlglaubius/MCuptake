@@ -13,7 +13,7 @@
 plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data, year_first=2000, year_final=2025) {
   par_list = unpack_pars(imis_fit$resample)
   mod_list = lapply(par_list, function(par) {model_sim(par, pop_data)})
-  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
+  ind_best = which.max(imis_fit$posterior)
   years = mod_list[[1]]$year
 
   ## Calculate MC prevalence for each parameter set and survey datapoint
@@ -79,7 +79,7 @@ plot_fitted_mc_rates = function(tiffname, imis_fit, pop_data) {
   }
 
   par_list = unpack_pars(imis_fit$resample)
-  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
+  ind_best = which.max(imis_fit$posterior)
 
   age = 0:100
   yrs = unique(pop_data$Year)
@@ -147,7 +147,7 @@ plot_fitted_mc_rates = function(tiffname, imis_fit, pop_data) {
 #' @export
 plot_fitted_mc_count = function(tiffname, imis_fit, pop_data, svy_data, year_first=2000, year_final=2025) {
   par_list = unpack_pars(imis_fit$resample)
-  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
+  ind_best = which.max(imis_fit$posterior)
   year = unique(pop_data$Year)
   ages = unique(pop_data$Age)
 
@@ -180,7 +180,7 @@ plot_fitted_mc_count = function(tiffname, imis_fit, pop_data, svy_data, year_fir
 #' @export
 write_mc_prev = function(csvname, imis_fit, pop_data) {
   par_list = unpack_pars(imis_fit$resample)
-  ind_best = which.max(imis_fit$prior + imis_fit$lhood)
+  ind_best = which.max(imis_fit$posterior)
   par_best = par_list[[ind_best]]
   mod_best = model_sim(par_best, pop_data)
 

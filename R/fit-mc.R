@@ -57,5 +57,6 @@ fit_mc_model = function(pop_data, svy_data) {
   # imis_fit = list(resample=sample_prior(100)) # Useful for debugging without waiting for IMIS
   imis_fit$prior = prior(imis_fit$resample)
   imis_fit$lhood = lhood(imis_fit$resample)
+  imis_fit$posterior = imis_fit$prior + imis_fit$lhood
   return(imis_fit)
 }
