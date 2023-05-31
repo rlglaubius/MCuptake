@@ -71,36 +71,6 @@ model_sim = function(par, pop_data) {
   return(list(year = year, pop_sum = pop_sum, pop_unc = pop_unc, pop_crc = pop_crc, num_crc = num_crc))
 }
 
-model_sim_alt = function(par, pop_data) {
-  year = unique(pop_data$Year)
-  ages = unique(pop_data$Age)
-  num_a = length(ages)
-  num_t = length(year)
-
-  age_wide = reshape2::dcast(pop_data, Year~Age, value.var="Value")
-  pop_sum = data.matrix(age_wide[,2:ncol(age_wide)])
-  num_crc = matrix(NA, ncol=num_a, nrow=num_t) # circumcisions performed
-
-  mc_rate = mc_model(year, ages, par)
-  mc_prob = 1.0 - exp(-mc_rate)
-
-  mc_prev = matrix(0, ncol=num_a, nrow=num_t)
-  mc_prev[,1] = mc_prob[,1] # initialize age 0
-
-  mc_prev[1,1] = mc_prob[1,1]
-  for (a in 2:num_a) {mc_prev[1,a] = mc_prev[1,a-1] + (1.0 - mc_prev[1,a-1]) * mc_prob[1,a]}
-  for (t in 2:num_t) {
-    for (a in 2:num_a) {
-      mc_prev[t,a] = mc_prev[t-1,a-1] + (1.0 - mc_prev[t-1,a-1]) * mc_prob[t,a]
-    }
-  }
-
-  pop_unc = pop_sum * (1.0 - mc_prev)
-  pop_crc = pop_sum * mc_prev
-
-  return(list(year = year, pop_sum = pop_sum, pop_unc = pop_unc, pop_crc = pop_crc, num_crc = num_crc))
-}
-
 sample_prior = function(n) {
   X = cbind(rexp(n, 0.5),           ## 1st mc rate, 1st slope parameter
             rexp(n, 0.5),           ## 1st mc rate, 2nd slope parameter
