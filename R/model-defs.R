@@ -2,10 +2,10 @@
 ## can be used with (e.g.) mc_model_rate.
 unpack_pars = function(par_matrix) {
   return(apply(par_matrix, 1, function(row_dat) {
-    list(mc_uptake_1 = row_dat[ 1:5 ],
-         mc_agedst_1 = row_dat[ 6:7 ],
-         mc_uptake_2 = row_dat[ 8:11],
-         mc_agedst_2 = row_dat[12:13])
+    list(mc_uptake_1 = row_dat[1:5],
+         mc_agedst_1 = row_dat[6:7],
+         mc_uptake_2 = row_dat[8],
+         mc_agedst_2 = row_dat[9:10])
   }))
 }
 
@@ -14,7 +14,7 @@ mc_model_rate = function(year, par) {
   z1 = 1.0 / (1.0 + exp(-par$mc_uptake_1[1] * (year - 1970 - par$mc_uptake_1[3])))
   z2 = 1.0 / (1.0 + exp(+par$mc_uptake_1[2] * (year - 1970 - par$mc_uptake_1[3])))
   mc_rate_1 = z1 * (2 * par$mc_uptake_1[4] * z2 + par$mc_uptake_1[5])
-  mc_rate_2 = par$mc_uptake_2[1] + (par$mc_uptake_2[2] - par$mc_uptake_2[1]) / (1.0 + exp(-par$mc_uptake_2[3] * (year - 1970 - par$mc_uptake_2[4])))
+  mc_rate_2 = par$mc_uptake_2
   return(cbind(mc_rate_1, mc_rate_2))
 }
 
@@ -82,9 +82,6 @@ sample_prior = function(n) {
             runif(n, 0, 50),        ## 1st mc age distribution, negative binomial mean
 
             rexp(n, 8.0),
-            rexp(n, 8.0),
-            rexp(n, 0.5),
-            rnorm(n, 2012-1970, 8),
 
             rexp(n, 0.1),
             runif(n, 0, 50))
@@ -103,9 +100,6 @@ prior = function(X) {
       dunif(X[,7], 0, 50,log=TRUE),
 
       dexp( X[, 8], 8.0,   log=TRUE),
-      dexp( X[, 9], 8.0,   log=TRUE),
-      dexp( X[,10], 0.5,   log=TRUE),
-      dnorm(X[,11], 2012-1970, 8, log=TRUE),
 
       dexp( X[,12], 0.1,  log=TRUE),
       dunif(X[,13], 0, 50,log=TRUE))))

@@ -50,6 +50,10 @@ estimate_mc_prev = function(isocode, tiffname, csvname, year_first=1970, year_fi
 #'
 #' @export
 fit_mc_model = function(pop_data, svy_data) {
+  pop_wide = reshape2::dcast(pop_data, Year~Age, value.var="Value")
+  pop_wide = data.matrix(pop_wide[,2:ncol(pop_wide)])
+  pop_wide[pop_wide==0] = 1e-16 # to avoid divide-by-zero errors
+
   stan_data = list(
     n_pop_yrs = length(unique(pop_data$Year)),
     n_pop_age = length(unique(pop_data$Age)),
@@ -67,7 +71,7 @@ fit_mc_model = function(pop_data, svy_data) {
   ## parameters
   keep_par = c("r1_slope1", "r1_slope2", "r1_center", "r1_theta1", "r1_theta2",
                "a1_size", "a1_mean",
-               "r2_llim", "r2_rlim", "r2_slope", "r2_midpt",
+               "r2_rate",
                "a2_size", "a2_mean")
 
   stan_fit = stan(

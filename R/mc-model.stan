@@ -25,11 +25,7 @@ parameters {
   real<lower=0> a1_size;
   real<lower=0,upper=50> a1_mean;
 
-  // The second rate (r2) is defined on its natural scale, so left and right limits must be non-negative
-  real<lower=0> r2_llim; // left limit
-  real<lower=0> r2_rlim; // right limit
-  real<lower=0> r2_slope;
-  real r2_midpt;
+  real<lower=0> r2_rate;
 
   // Age distribution used with the second rate
   real<lower=0> a2_size;
@@ -56,7 +52,7 @@ transformed parameters {
     z1 = 1.0 / (1.0 + exp(-r1_slope1 * (pop_year[t] - 1970 - r1_center)));
     z2 = 1.0 / (1.0 + exp(+r1_slope2 * (pop_year[t] - 1970 - r1_center)));
     rate1[t] = z1 * (2 * r1_theta1 * z2 + r1_theta2);
-    rate2[t] = r2_llim + (r2_rlim - r2_llim) / (1.0 + exp(-r2_slope * (pop_year[t] - 1970 - r2_midpt)));
+    rate2[t] = r2_rate;
   }
 
   // Calculate rate age distributions
@@ -111,10 +107,7 @@ model {
   a1_size ~ exponential(0.1);
   a1_mean ~ uniform(0, 50);
 
-  r2_llim ~ exponential(8.0);
-  r2_rlim ~ exponential(8.0);
-  r2_slope ~ exponential(0.5);
-  r2_midpt ~ normal(2012-1970, 8.0);
+  r2_rate ~ exponential(8.0);
 
   a2_size ~ exponential(0.1);
   a2_mean ~ uniform(0, 50);
