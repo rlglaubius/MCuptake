@@ -16,8 +16,8 @@ mc_model_rate = function(year, par) {
   mc_rate_1 = z1 * (2 * par$mc_uptake_1[4] * z2 + par$mc_uptake_1[5])
   mc_rate_2 = rep(par$mc_uptake_2, length(year))
 
-  mc_rate_1[year>=2021] = 0.6 * mc_rate_1[year==2019]
-  mc_rate_2[year>=2021] = 0.6 * mc_rate_2[year==2019]
+  mc_rate_1[year>2021] = 0.6 * mc_rate_1[year==2019]
+  mc_rate_2[year>2021] = 0.6 * mc_rate_2[year==2019]
 
   return(cbind(mc_rate_1, mc_rate_2))
 }
