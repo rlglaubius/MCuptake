@@ -100,8 +100,8 @@ model {
   // Prior
   r1_slope1 ~ exponential(0.5);
   r1_slope2 ~ exponential(0.5);
-  r1_center ~ normal(2012-1970, 8.0);
-  r1_theta1 ~ exponential(0.5);
+  r1_center ~ normal(2012-1970, 4.0);
+  r1_theta1 ~ exponential(2.0);
   r1_theta2 ~ exponential(0.5);
 
   a1_size ~ exponential(0.1);

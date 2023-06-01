@@ -74,8 +74,8 @@ model_sim = function(par, pop_data) {
 sample_prior = function(n) {
   X = cbind(rexp(n, 0.5),           ## 1st mc rate, 1st slope parameter
             rexp(n, 0.5),           ## 1st mc rate, 2nd slope parameter
-            rnorm(n, 2012-1970, 8), ## 1st mc rate, location parameter
-            rexp(n, 0.5),           ## 1st mc rate, 1st height parameter
+            rnorm(n, 2012-1970, 4), ## 1st mc rate, location parameter
+            rexp(n, 1.0),           ## 1st mc rate, 1st height parameter
             rexp(n, 0.5),           ## 1st mc rate, 2nd height parameter
 
             rexp(n, 0.1),           ## 1st mc age distribution, negative binomial size
@@ -92,8 +92,8 @@ prior = function(X) {
     cbind(
       dexp( X[,1], 0.5,  log=TRUE),
       dexp( X[,2], 0.5,  log=TRUE),
-      dnorm(X[,3], 2012-1970, 8, log=TRUE),
-      dexp( X[,4], 0.5,   log=TRUE),
+      dnorm(X[,3], 2012-1970, 4, log=TRUE),
+      dexp( X[,4], 1.0,   log=TRUE),
       dexp( X[,5], 0.5,   log=TRUE),
 
       dexp( X[,6], 0.1,  log=TRUE),
