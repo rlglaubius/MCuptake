@@ -4,7 +4,14 @@
 \alias{plot_fitted_mc_prev}
 \title{Plot fitted male circumcision prevalence}
 \usage{
-plot_fitted_mc_prev(tiffname, imis_fit, pop_data, svy_data)
+plot_fitted_mc_prev(
+  tiffname,
+  imis_fit,
+  pop_data,
+  svy_data,
+  year_first = 2000,
+  year_final = 2025
+)
 }
 \arguments{
 \item{tiffname}{Output figure filename (tiff format)}
@@ -16,6 +23,10 @@ age for the selected country}
 
 \item{svy_data}{A data frame of male circumcision prevalence estimates from
 household surveys for the selected country}
+
+\item{year_first}{First year to plot}
+
+\item{year_final}{Final year to plot}
 }
 \description{
 Plot fitted male circumcision prevalence for a single country as a TIFF file

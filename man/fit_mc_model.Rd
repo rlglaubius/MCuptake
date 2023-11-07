@@ -12,7 +12,7 @@ fit_mc_model(pop_data, svy_data)
 \item{svy_data}{A data frame of male circumcision prevalence estimates from household surveys for the selected country}
 }
 \value{
-An IMIS model fit object (See details section)
+An model fit object (See details section)
 }
 \description{
 Fit the male circumcision uptake model for one country
@@ -20,15 +20,13 @@ Fit the male circumcision uptake model for one country
 \section{Details}{
 
 
-The IMIS model fit object is a list of the following:
+The model fit object is a list of the following:
 \enumerate{
 \item{resample} A matrix of posterior parameter values, one row per sample, one column per parameter
-\item{center} IMIS constructs a gaussian mixture model approximation to the posterior. "center" is a matrix of
-modes of the gaussian components of that mixture model
-\item{stat} Convergence monitoring statistics from IMIS iterations. These are also displayed in the R console
-when \code{fit_mc_model} is running
-\item{prior} log prior density at each resample
-\item{lhood} log likelihood at each resample
+\item{posterior} Posterior density at each sample. This is calculated by Stan, and accounts for
+non-negativity constraints on parameters, which will cause the values to differ from those calculated
+using \code{prior()} + \code{likelihood()}.
+\item{raw} Raw output from \code{stan()}. Useful for checking convergence diagnostics.
 }
 }
 

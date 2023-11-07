@@ -3,16 +3,14 @@ library(gridExtra)
 library(MCuptake)
 library(rstan)
 
-# source("R/fit-mc.R")
-# source("R/model-defs.R")
-# source("R/plot-defs.R")
+country_code = "ZWE"
 
 ## Configure Stan to use multiple cores. Fitting will take ~4 times as long if
 ## this is not done
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-fit_data = list(iso_code = "ETH")
+fit_data = list(iso_code = country_code)
 fit_data$pop_data = subset(mc_pop_data, ISO_Alpha_3==fit_data$iso_code & Year >= 1970 & Year <= 2025)
 fit_data$svy_data = subset(mc_svy_data, ISO_Alpha_3==fit_data$iso_code)
 fit_data$imis_fit = fit_mc_model(fit_data$pop_data, fit_data$svy_data)
