@@ -17,6 +17,6 @@ Collate:
   plot-defs.R
   fit-mc.R
   prepare-svy-data.R
-Imports: ggplot2, gridExtra, mvtnorm
+Imports: ggplot2, gridExtra, mvtnorm, rstan, StanHeaders
 Depends: 
     R (>= 2.10)

@@ -2,18 +2,23 @@
 ## can be used with (e.g.) mc_model_rate.
 unpack_pars = function(par_matrix) {
   return(apply(par_matrix, 1, function(row_dat) {
-    list(mc_uptake_1 = row_dat[ 1:6 ],
-         mc_agedst_1 = row_dat[ 7:8 ],
-         mc_uptake_2 = row_dat[ 9:12],
-         mc_agedst_2 = row_dat[13:14])
+    list(mc_uptake_1 = row_dat[1:5],
+         mc_agedst_1 = row_dat[6:7],
+         mc_uptake_2 = row_dat[8],
+         mc_agedst_2 = row_dat[9:10])
   }))
 }
 
 ## Male circumcision uptake rates over time
 mc_model_rate = function(year, par) {
-  z = par$mc_uptake_1[1] + (par$mc_uptake_1[2] - par$mc_uptake_1[1]) / (1.0 + exp(-par$mc_uptake_1[3] * (year - 1970 - par$mc_uptake_1[4])))
-  mc_rate_1 = exp(-0.5 * (z / par$mc_uptake_1[5])^2) * par$mc_uptake_1[6]
-  mc_rate_2 = par$mc_uptake_2[1] + (par$mc_uptake_2[2] - par$mc_uptake_2[1]) / (1.0 + exp(-par$mc_uptake_2[3] * (year - 1970 - par$mc_uptake_2[4])))
+  z1 = 1.0 / (1.0 + exp(-par$mc_uptake_1[1] * (year - 1970 - par$mc_uptake_1[3])))
+  z2 = 1.0 / (1.0 + exp(+par$mc_uptake_1[2] * (year - 1970 - par$mc_uptake_1[3])))
+  mc_rate_1 = z1 * (2 * par$mc_uptake_1[4] * z2 + par$mc_uptake_1[5])
+  mc_rate_2 = rep(par$mc_uptake_2, length(year))
+
+  mc_rate_1[year>2021] = 0.6 * mc_rate_1[year==2019]
+  mc_rate_2[year>2021] = 0.6 * mc_rate_2[year==2019]
+
   return(cbind(mc_rate_1, mc_rate_2))
 }
 
@@ -71,20 +76,16 @@ model_sim = function(par, pop_data) {
 }
 
 sample_prior = function(n) {
-  X = cbind(rnorm(n, 0, 1),         ## mc rate, limit as t -> -inf in probit space
-            rnorm(n, 0, 1),         ## mc rate, limit as t -> +inf in probit space
-            rexp(n, 0.5),           ## mc rate, maximum slope magnitude (prior: less rapid changes are more likely)
-            rnorm(n, 2012-1970, 8), ## mc rate, time of change
-            rexp(n, 1.0),           ## mc rate maximum
-            rexp(n, 1.0),           ## mc rate probit variance
+  X = cbind(rexp(n, 0.5),           ## 1st mc rate, 1st slope parameter
+            rexp(n, 0.5),           ## 1st mc rate, 2nd slope parameter
+            rnorm(n, 2012-1970, 4), ## 1st mc rate, location parameter
+            rexp(n, 1.0),           ## 1st mc rate, 1st height parameter
+            rexp(n, 0.5),           ## 1st mc rate, 2nd height parameter
 
-            rexp(n, 0.1),           ## mc age distribution, negative binomial size
-            runif(n, 0, 50),        ## mc age distribution, negative binomial mean
+            rexp(n, 0.1),           ## 1st mc age distribution, negative binomial size
+            runif(n, 0, 50),        ## 1st mc age distribution, negative binomial mean
 
             rexp(n, 8.0),
-            rexp(n, 8.0),
-            rexp(n, 0.5),
-            rnorm(n, 2012-1970, 8),
 
             rexp(n, 0.1),
             runif(n, 0, 50))
@@ -93,23 +94,19 @@ sample_prior = function(n) {
 prior = function(X) {
   return(rowSums(
     cbind(
-      dnorm(X[,1], 0, 1,  log=TRUE),
-      dnorm(X[,2], 0, 1,  log=TRUE),
-      dexp( X[,3], 0.5,   log=TRUE),
-      dnorm(X[,4], 2012-1970, 8, log=TRUE),
-      dexp( X[,5], 1.0,   log=TRUE),
-      dexp( X[,6], 1.0,   log=TRUE),
+      dexp( X[,1], 0.5,  log=TRUE),
+      dexp( X[,2], 0.5,  log=TRUE),
+      dnorm(X[,3], 2012-1970, 4, log=TRUE),
+      dexp( X[,4], 1.0,   log=TRUE),
+      dexp( X[,5], 0.5,   log=TRUE),
 
-      dexp( X[,7], 0.1,  log=TRUE),
-      dunif(X[,8], 0, 50,log=TRUE),
+      dexp( X[,6], 0.1,  log=TRUE),
+      dunif(X[,7], 0, 50,log=TRUE),
 
-      dexp( X[, 9], 8.0,   log=TRUE),
-      dexp( X[,10], 8.0,   log=TRUE),
-      dexp( X[,11], 0.5,   log=TRUE),
-      dnorm(X[,12], 2012-1970, 8, log=TRUE),
+      dexp( X[, 8], 8.0,   log=TRUE),
 
-      dexp( X[,13], 0.1,  log=TRUE),
-      dunif(X[,14], 0, 50,log=TRUE))))
+      dexp( X[,12], 0.1,  log=TRUE),
+      dunif(X[,13], 0, 50,log=TRUE))))
 }
 
 likelihood = function(X, pop_data, svy_data) {
