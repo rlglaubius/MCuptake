@@ -74,8 +74,8 @@ fit_mc_model = function(pop_data, svy_data) {
                "r2_rate",
                "a2_size", "a2_mean")
 
-  stan_fit = stan(
-    file = stanmodels$mcmodel,
+  stan_fit = sampling(
+    stanmodels$mcmodel,
     data = stan_data,
     iter = 2000,
     chains = 4,
