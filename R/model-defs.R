@@ -30,7 +30,32 @@ mc_model = function(year, age, par) {
   return(outer(mc_rate[,1], mc_dist[,1]) + outer(mc_rate[,2], mc_dist[,2]))
 }
 
-model_sim = function(par, pop_data) {
+#' Simulate male circumcision uptake
+#' @param pop_data A long dataframe of male population sizes. See \code{details}
+#'   for the expected contents
+#' @param par (optional) model parameters, as returned by \code{unpack_pars}.
+#'   Either \code{par} or \code{rates} must be specified.
+#' @param rates (optional) an age-by-year matrix of male circumcision uptake
+#'   rates. Either \code{par} or \code{rates} must be specified.
+#' @return a list of model outputs. See \code{details} for a description.
+#' @section Details:
+#'
+#'   \code{pop_data} should include columns for Year, Age, and Value. Value
+#'   specifies the male population size for the stated year and age.
+#'
+#'   The returned list includes five elements:
+#'   \enumerate{
+#'   \item{year - a vector of output years}
+#'   \item{pop_sum - a year-by-age matrix of output male population sizes}
+#'   \item{pop_unc - A year-by-age matrix of uncircumcised population sizes}
+#'   \item{pop_crc - A year-by-age matrix of circumcised population sizes}
+#'   \item{num_crc - A year-by-age matrix of numbers of circumcisions performed}
+#'   }
+model_sim = function(pop_data, par=NULL, rates=NULL) {
+  if (is.null(rates) & is.null(par)) {
+    stop("'rates' or 'par' must be specified")
+  }
+
   year = unique(pop_data$Year)
   ages = unique(pop_data$Age)
   num_a = length(ages)
@@ -42,7 +67,14 @@ model_sim = function(par, pop_data) {
   pop_crc = matrix(0, ncol=num_a, nrow=num_t) # circumcised population
   num_crc = matrix(0, ncol=num_a, nrow=num_t) # circumcisions performed
 
-  mc_rate = mc_model(year, ages, par)
+  if (!is.null(par)) {
+    mc_rate = MCuptake:::mc_model(year, ages, par)
+  } else {
+    if (any(dim(rates) != dim(pop_sum))) {
+      stop(sprintf("dim(rates) does not match (year=%d, age=%d)", num_t, num_a))
+    }
+    mc_rate = rates
+  }
   mc_prob = 1.0 - exp(-mc_rate)
 
   ## Initialize the base-year population assuming that male circumcision
@@ -111,7 +143,7 @@ likelihood = function(X, pop_data, svy_data) {
   par_list = unpack_pars(X)
   for (k in which(is.finite(P))) {
     inputs = par_list[[k]]
-    output = model_sim(inputs, pop_data)
+    output = model_sim(pop_data, par=inputs)
 
     L[k] = sum(apply(svy_data[,c("age_min", "age_max", "year", "num_uncircumcised", "num_circumcised")], 1, function(obs) {
       a_ind = 1 + obs[1]:obs[2]

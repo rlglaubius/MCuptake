@@ -13,7 +13,7 @@
 #' @export
 plot_fitted_mc_prev = function(tiffname, imis_fit, pop_data, svy_data, year_first=2000, year_final=2025) {
   par_list = unpack_pars(imis_fit$resample)
-  mod_list = lapply(par_list, function(par) {model_sim(par, pop_data)})
+  mod_list = lapply(par_list, function(par) {model_sim(pop_data, par=par)})
   ind_best = which.max(imis_fit$posterior)
   years = mod_list[[1]]$year
 
@@ -153,7 +153,7 @@ plot_fitted_mc_count = function(tiffname, imis_fit, pop_data, svy_data, year_fir
   ages = unique(pop_data$Age)
 
   mc_count = sapply(par_list, function(par) {
-    vals = model_sim(par, pop_data)
+    vals = model_sim(pop_data, par=par)
     return(rowSums(vals$num_crc))
   })
 
@@ -183,7 +183,7 @@ write_mc_prev = function(csvname, imis_fit, pop_data) {
   par_list = unpack_pars(imis_fit$resample)
   ind_best = which.max(imis_fit$posterior)
   par_best = par_list[[ind_best]]
-  mod_best = model_sim(par_best, pop_data)
+  mod_best = model_sim(pop_data, par=par_best)
 
   age_groups = data.frame(age_min  = seq(15, 45, 5),
                           age_max  = seq(19, 49, 5))
