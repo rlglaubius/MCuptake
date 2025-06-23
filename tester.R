@@ -3,7 +3,7 @@ library(gridExtra)
 library(MCuptake)
 library(rstan)
 
-country_code = "BWA"
+country_code = "MWI"
 
 ## Configure Stan to use multiple cores. Fitting will take ~4 times as long if
 ## this is not done
