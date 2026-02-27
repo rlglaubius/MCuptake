@@ -185,8 +185,8 @@ write_mc_prev = function(csvname, imis_fit, pop_data) {
   par_best = par_list[[ind_best]]
   mod_best = model_sim(pop_data, par=par_best)
 
-  age_groups = data.frame(age_min  = seq(15, 45, 5),
-                          age_max  = seq(19, 49, 5))
+  age_groups = data.frame(age_min  = c(seq(15, 45, 5), 15),
+                          age_max  = c(seq(19, 49, 5), 49))
   age_groups$AgeGroup = sprintf("%d-%d", age_groups$age_min, age_groups$age_max)
   mod_prev = plyr::ddply(age_groups, .variables=c("AgeGroup"), function(df) {
     age_min = df$age_min[1]
